@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<title>Socket.IO Chat Demo</title>
+
+		<style>
+			#chat {
+				height: 500px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="chat-area"></div>
+		<form id="message-form">
+			<input size="35" id="message-box"></input>
+			<input type="submit"></input>
+		</form> 
+	</body>
+
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+
+	<script>
+		jQuery(function($) {
+			var socket = io.connect();
+			var messageForm = $('#message-form')
+			var messageBox = $('#message-box');
+			var chatArea = $('#chat-area');
+
+
+			// send message to server when submit button is pressed
+			messageForm.submit(function(e) {
+				e.preventDefault();  // prevent page refresh
+				socket.emit('message sent', messageBox.val());
+				messageBox.val('');
+			});
+
+			socket.on('new message', function(data) {
+				chatArea.append(data + "<br/>");
+			});
+		});
+	</script>
+</html>
