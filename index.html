@@ -11,10 +11,15 @@
 
 	<body>
 		<div id="chat-area"></div>
+
 		<form id="message-form">
+			<p id="username-prompt">Enter a username:</p>
+
 			<input size="35" id="message-box"></input>
 			<input type="submit"></input>
 		</form> 
+
+		<div id="user-list"></div>
 	</body>
 
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
@@ -23,18 +28,43 @@
 	<script>
 		jQuery(function($) {
 			var socket = io.connect();
+
 			var messageForm = $('#message-form')
 			var messageBox = $('#message-box');
 			var chatArea = $('#chat-area');
+
+			var userList = $('#user-list');
+			var firstSubmit = true;
+			var userName;
 
 
 			// send message to server when submit button is pressed
 			messageForm.submit(function(e) {
 				e.preventDefault();  // prevent page refresh
-				socket.emit('message sent', messageBox.val());
+				var messageText = messageBox.val();
+
+				// emit seperate events for first message and later messages
+				if (firstSubmit) {
+					socket.emit('name sent', messageText);
+					userName = messageText;  // store user's name for attaching to messages later
+					$('#username-prompt').hide();
+					firstSubmit = false;
+				} else {
+					socket.emit('message sent', userName + ": " + messageText);					
+				}
 				messageBox.val('');
 			});
 
+			// display user's name in list of current users
+			socket.on('update names', function(data) {
+				var names = '';
+				for(i=0; i < data.length; i++){
+					names += data[i] + '<br/>';
+				}
+				userList.html(names);
+			});
+
+			// display message in message area
 			socket.on('new message', function(data) {
 				chatArea.append(data + "<br/>");
 			});
